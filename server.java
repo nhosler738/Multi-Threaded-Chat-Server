@@ -13,7 +13,6 @@ class server {
 
     // list of all client output streams (clients connected to the server)
     private static final List<PrintWriter> clientOutputs = new CopyOnWriteArrayList<>();
-    private static int clientIDCounter = 0;
     
     public static void main(String[] args) {
         
@@ -24,9 +23,10 @@ class server {
             // running infinite loop for getting client requests
             while (true) {
                 Socket clientSocket = server.accept();
-                int thisClientID = clientIDCounter++;
+                
 
-                ClientHandler clientHandler = new ClientHandler(clientSocket, thisClientID);
+
+                ClientHandler clientHandler = new ClientHandler(clientSocket);
 
                 // Display that new client has connected to server with its ID number
                 System.out.println("New client connected: " + clientHandler.getClientIDString());
@@ -52,20 +52,18 @@ class server {
     private static class ClientHandler implements Runnable {
 
         private final Socket clientSocket; 
-        private final int clientSocketID;
-        private final String clientSocketIDString;
+        private String clientSocketIDString;
         private PrintWriter out;
         private BufferedReader in;
     
         // Constructor 
-        public ClientHandler(Socket socket, int clientID) {
+        public ClientHandler(Socket socket) {
             this.clientSocket = socket;
-            this.clientSocketID = clientID;
-            this.clientSocketIDString = initClientIDString();
+            this.clientSocketIDString = "";
         }
 
-        public String initClientIDString() {
-            return "Client" + this.clientSocketID;
+        public void setClientChatName(String username) {
+            this.clientSocketIDString = username;
         }
 
         public String getClientIDString() {
@@ -87,6 +85,9 @@ class server {
 
                 // add the clients output stream to the list of all client output streams
                 clientOutputs.add(out);
+
+                String username = in.readLine();
+                setClientChatName(username);
 
                 // send all client socket information here 
                 out.println(clientSocketIDString);

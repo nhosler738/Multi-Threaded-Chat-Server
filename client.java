@@ -32,12 +32,14 @@ public class client {
     public static void main(String[] args) throws IOException {
         Scanner sc = new Scanner(System.in);
         System.out.println("Enter server hostname:");
-        String hostname = sc.nextLine();
+        String hostname = sc.nextLine().trim();
         System.out.println("Enter server port number:");
-        int port = sc.nextInt();
+        int port = Integer.parseInt(sc.nextLine().trim());
+        System.out.println("Set chat username: ");
+        String username = sc.nextLine().trim();
 
         // start client application
-        startApplication(hostname, port);
+        startApplication(hostname, port, username);
 
         sc.close();
         
@@ -70,13 +72,16 @@ public class client {
         return new ClientGUI(frame, chatArea, inputField, sendButton);
     }
 
-    public static void startApplication(String hostname, int port) {
+    public static void startApplication(String hostname, int port, String username) {
         try {
             Socket socket = connectToServer(hostname, port);
             
             // setup client input and output streams to server 
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+            // send preferred chat username to server 
+            out.println(username);
 
             // get client id from server clienthandler 
             String clientIDString = in.readLine();
