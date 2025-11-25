@@ -31,6 +31,7 @@ class server {
                 // Display that new client has connected to server with its ID number
                 System.out.println("New client connected: " + clientHandler.getClientIDString());
                 
+
                 // This thread will handle the new client separately 
                 new Thread(clientHandler).start();
             }
@@ -87,9 +88,10 @@ class server {
                 // add the clients output stream to the list of all client output streams
                 clientOutputs.add(out);
 
-
                 // send all client socket information here 
                 out.println(clientSocketIDString);
+
+                server.broadcast(clientSocketIDString + " has joined the server");
 
                 String line; 
                 while ((line = in.readLine()) != null) {
@@ -114,6 +116,7 @@ class server {
             finally {
                 try {
                     clientOutputs.remove(out);
+                    server.broadcast(clientSocketIDString + " has left the server");
                     if (out != null) {
                         out.close();
                     }
