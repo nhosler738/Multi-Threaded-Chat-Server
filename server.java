@@ -4,25 +4,27 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 
 
 class server {
 
+    // list of all client output streams (clients connected to the server)
+    private static final List<PrintWriter> clientOutputs = new CopyOnWriteArrayList<>();
+    private static int clientIDCounter = 0;
     
     public static void main(String[] args) {
-        ServerSocket server = null;
-        int clientIdCounter = 0;
+        
 
-        try {
-            // server listening on port 1234 at localhost
-            server = new ServerSocket(1234);
-            server.setReuseAddress(true);
+        try (ServerSocket server = new ServerSocket(1234)) {
+            System.out.println("Server running on port: " + server.getLocalPort());
 
             // running infinite loop for getting client requests
             while (true) {
                 Socket clientSocket = server.accept();
-                int thisClientID = clientIdCounter++;
+                int thisClientID = clientIDCounter++;
 
                 ClientHandler clientHandler = new ClientHandler(clientSocket, thisClientID);
 
@@ -36,15 +38,13 @@ class server {
         catch (IOException e) {
             e.printStackTrace();
         }
-        finally {
-            if (server != null) {
-                try {
-                    server.close();
-                }
-                catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+    }
+
+    // Broadcast message to all connected clients 
+    public static void broadcast(String message) {
+        for (PrintWriter writer : clientOutputs) {
+            writer.println(message);
+            writer.flush();
         }
     }
 
@@ -53,6 +53,8 @@ class server {
         private final Socket clientSocket; 
         private final int clientSocketID;
         private final String clientSocketIDString;
+        private PrintWriter out;
+        private BufferedReader in;
     
         // Constructor 
         public ClientHandler(Socket socket, int clientID) {
@@ -70,8 +72,7 @@ class server {
         }
 
         public void run() {
-            PrintWriter out = null;
-            BufferedReader in = null;
+            
 
             try {
                 // get outputstream from client
@@ -83,13 +84,21 @@ class server {
                     new InputStreamReader(clientSocket.getInputStream())
                 );
 
+                // add the clients output stream to the list of all client output streams
+                clientOutputs.add(out);
+
+
                 // send all client socket information here 
                 out.println(clientSocketIDString);
 
                 String line; 
                 while ((line = in.readLine()) != null) {
-                    // writing the received message from client 
-                    System.out.println("Sent from " + clientSocketIDString + ": " + line);
+                    String fullMessage = clientSocketIDString + ": " + line;
+                    // *** log message in log.txt file for future ***
+                    System.out.println(fullMessage);
+
+                    // broadcast to all clients
+                    server.broadcast(fullMessage);
                 }
 
                 // Client disconnects from server 
@@ -100,16 +109,18 @@ class server {
             catch (IOException e) {
                 e.printStackTrace();
             }
-            // after, close i/o streams and client socket 
+            // after client disconnects, close i/o streams and client socket 
+            // remove client output stream from clientOutputs list 
             finally {
                 try {
+                    clientOutputs.remove(out);
                     if (out != null) {
                         out.close();
                     }
                     if (in != null) {
                         in.close();
-                        clientSocket.close();
                     }
+                    clientSocket.close();
                 }
                 catch (IOException e) {
                     e.printStackTrace();

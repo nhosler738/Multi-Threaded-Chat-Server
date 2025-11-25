@@ -1,27 +1,49 @@
-import java.awt.BorderLayout;
+
+// Java Networking Libraries
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Scanner;
 
 // Client Interface Libraries
 import javax.swing.*;
+import java.awt.BorderLayout;
+
+
 
 public class client {
 
-    public static void main(String[] args) throws IOException {
-        //String hostname = "localhost";
-        //int port = 1234;
+    static class ClientGUI {
+        JFrame frame;
+        JTextArea chatArea;
+        JTextField inputField;
+        JButton sendButton;
 
-        //startApplication(hostname, port);
-        
-        // Testing JFrame interface
-        testClientInterface();
-
+        ClientGUI(JFrame frame, JTextArea chatArea, JTextField inputField, JButton sendButton) {
+            this.frame = frame;
+            this.chatArea = chatArea;
+            this.inputField = inputField;
+            this.sendButton = sendButton;
+        }
     }
 
-    public static JFrame createInterface(String clientIDString) {
+    public static void main(String[] args) throws IOException {
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Enter server hostname:");
+        String hostname = sc.nextLine();
+        System.out.println("Enter server port number:");
+        int port = sc.nextInt();
+
+        // start client application
+        startApplication(hostname, port);
+
+        sc.close();
+        
+    }
+
+    public static ClientGUI createInterface(String clientIDString) {
         // Create new JFrame (main client window)
         JFrame frame = new JFrame("Client Interface - " + clientIDString);
         frame.setSize(400, 500);
@@ -45,7 +67,7 @@ public class client {
         frame.add(bottomPanel, BorderLayout.SOUTH);
 
         
-        return frame;
+        return new ClientGUI(frame, chatArea, inputField, sendButton);
     }
 
     public static void startApplication(String hostname, int port) {
@@ -60,7 +82,47 @@ public class client {
             String clientIDString = in.readLine();
 
             // start interface 
-            JFrame clientInterface = createInterface(clientIDString);
+            ClientGUI clientInterface = createInterface(clientIDString);
+
+            // Setup listeners 
+            
+            // send button 
+            clientInterface.sendButton.addActionListener(e -> {
+                String text = clientInterface.inputField.getText();
+                clientInterface.inputField.setText("");
+                out.println(text);
+            });
+
+            // if client presses enter instead of clicking send button
+            clientInterface.inputField.addActionListener(e -> {
+                clientInterface.sendButton.doClick();
+            });
+            
+            // listener for server messages (other clients messages)
+            new Thread(() -> {
+                try {
+                    String msg;
+
+                    // read messages continuously
+                    while ((msg = in.readLine()) != null) {
+                        clientInterface.chatArea.append(msg + "\n");
+                    } 
+
+                    // If loop exits: server closed the connection
+                    clientInterface.chatArea.append("Disconnected from server\n");
+
+                } catch (IOException ex) {
+                    clientInterface.chatArea.append("Connection error\n");
+                } 
+            }).start();
+
+
+
+
+            // show the GUI
+            clientInterface.frame.setVisible(true);
+
+
 
         }
         catch (IOException e) {
@@ -82,12 +144,6 @@ public class client {
     }
 
 
-    // Tests
-    public static void testClientInterface() {
-        String testID = "Test Client ID 1";
-        JFrame clientInterface = createInterface(testID);
-        clientInterface.setVisible(true);
-    }
     
 }
 
