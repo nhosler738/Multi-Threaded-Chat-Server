@@ -92,11 +92,19 @@ class server {
                 // send all client socket information here 
                 out.println(clientSocketIDString);
 
-                server.broadcast(clientSocketIDString + " has joined the server");
+                // Get intial timestamp on join
+                String timestamp = java.time.LocalDateTime.now()
+                .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+                server.broadcast("[" + timestamp + "] " + clientSocketIDString + " has joined the server");
 
                 String line; 
                 while ((line = in.readLine()) != null) {
-                    String fullMessage = clientSocketIDString + ": " + line;
+                    // update timestamp
+                    timestamp = java.time.LocalDateTime.now()
+                    .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+                    String fullMessage = "[" + timestamp + "] " + clientSocketIDString + ": " + line;
                     // *** log message in log.txt file for future ***
                     System.out.println(fullMessage);
 
@@ -117,7 +125,10 @@ class server {
             finally {
                 try {
                     clientOutputs.remove(out);
-                    server.broadcast(clientSocketIDString + " has left the server");
+                    String disconnectTimeStamp = java.time.LocalDateTime.now()
+                    .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+                    server.broadcast("[" + disconnectTimeStamp + "] " + clientSocketIDString + " has left the server");
                     if (out != null) {
                         out.close();
                     }
