@@ -1,2 +1,14 @@
 # ideas.txt
 ideas.txt 
+
+# client log folder 
+client_log/
+
+# java compiled classes
+*.class
+
+
+# OS files
+.DS_Store
+
+
