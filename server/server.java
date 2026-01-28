@@ -1,13 +1,18 @@
+package server;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -30,7 +35,8 @@ class server {
 
         try (ServerSocket server = new ServerSocket(1234)) {
             System.out.println("Server running on port: " + server.getLocalPort());
-
+            // print server lan address 
+            returnLanAddress();
             // check for log dir 
             checkForLogDir();
     
@@ -51,6 +57,45 @@ class server {
         catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void returnLanAddress() {
+
+        try {
+            // get lan ip address of server socket 
+            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+
+            while (interfaces.hasMoreElements()) {
+                NetworkInterface iface = interfaces.nextElement();
+                
+                // skip loopback (localhost) and inactive interfaces
+                if (iface.isLoopback() || !iface.isUp()) {
+                    continue;
+                }
+
+                Enumeration<InetAddress> addresses = iface.getInetAddresses();
+                while (addresses.hasMoreElements()) {
+                    InetAddress addr = addresses.nextElement();
+                    if (addr instanceof Inet4Address) {
+                        String ip = addr.getHostAddress();
+                        if (ip.startsWith("192.") || ip.startsWith("10.")) {
+                            System.out.println("LAN IP: " + ip);
+                        }
+                    }
+                }
+            }
+
+            
+            
+
+        } catch (SocketException e) {
+            e.printStackTrace();
+            
+        }
+
+        
+
+
     }
 
    

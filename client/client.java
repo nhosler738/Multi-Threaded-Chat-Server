@@ -1,3 +1,4 @@
+package client;
 
 // Java Networking Libraries
 import java.io.BufferedReader;
@@ -5,23 +6,58 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.Scanner;
 
 // Client Interface Libraries
 import javax.swing.*;
 import java.awt.BorderLayout;
+import java.awt.GridLayout;
 
 
 
 public class client {
 
-    static class ClientGUI {
+    static class ClientStartGUI {
+        JFrame frame;
+        JTextField hostnameField;
+        JTextField portField;
+        JTextField clientUsername;
+        JButton sendButton;
+
+
+        String hostname;
+        String port;
+        String chatUsername;
+
+        ClientStartGUI(JFrame frame, JTextField hostnameField,
+        JTextField portField, JButton sendButton, JTextField clientUsername) { 
+            this.frame = frame;
+            this.hostnameField = hostnameField;
+            this.portField = portField;
+            this.sendButton = sendButton;
+            this.clientUsername = clientUsername;
+        }
+
+        public void addListeners() {
+            sendButton.addActionListener(e -> {
+                this.hostname = hostnameField.getText();
+                this.port = portField.getText();
+                this.chatUsername = clientUsername.getText();
+
+                // start client connection 
+                startCommunicationWithServer(hostname, Integer.parseInt(port), chatUsername);
+            });
+        }
+    }
+ 
+   
+
+    static class ClientChatGUI {
         JFrame frame;
         JTextArea chatArea;
         JTextField inputField;
         JButton sendButton;
 
-        ClientGUI(JFrame frame, JTextArea chatArea, JTextField inputField, JButton sendButton) {
+        ClientChatGUI(JFrame frame, JTextArea chatArea, JTextField inputField, JButton sendButton) {
             this.frame = frame;
             this.chatArea = chatArea;
             this.inputField = inputField;
@@ -29,23 +65,53 @@ public class client {
         }
     }
 
+    
     public static void main(String[] args) throws IOException {
-        Scanner sc = new Scanner(System.in);
-        System.out.println("Enter server hostname:");
-        String hostname = sc.nextLine().trim();
-        System.out.println("Enter server port number:");
-        int port = Integer.parseInt(sc.nextLine().trim());
-        System.out.println("Set chat username: ");
-        String username = sc.nextLine().trim();
+        
 
-        // start client application
-        startApplication(hostname, port, username);
+        // start gui 
+        ClientStartGUI startFrame = createStartGUI();
+        startFrame.addListeners();
+        startFrame.frame.setVisible(true);
 
-        sc.close();
+
+        
+
+        
         
     }
 
-    public static ClientGUI createInterface(String clientIDString) {
+    public static ClientStartGUI createStartGUI() {
+        JFrame frame = new JFrame("Start chatting");
+        frame.setSize(400, 200);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setLayout(new BorderLayout());
+
+        // Input fields
+        JTextField hostname = new JTextField("Hostname");
+        JTextField port = new JTextField("Port");
+        JTextField username = new JTextField("Username");
+        JButton enterButton = new JButton("Enter");
+
+        // Panel for input fields
+        JPanel inputPanel = new JPanel(new GridLayout(3, 1, 5, 5));
+        inputPanel.add(hostname);
+        inputPanel.add(port);
+        inputPanel.add(username);
+
+        // Main panel
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        mainPanel.add(inputPanel, BorderLayout.CENTER);
+        mainPanel.add(enterButton, BorderLayout.SOUTH);
+
+        frame.add(mainPanel, BorderLayout.CENTER);
+        frame.setVisible(true);
+
+        return new ClientStartGUI(frame, hostname, port, enterButton, username);
+    }
+
+
+    public static ClientChatGUI createChatGUI(String clientIDString) {
         // Create new JFrame (main client window)
         JFrame frame = new JFrame("Client Interface - " + clientIDString);
         frame.setSize(400, 500);
@@ -69,10 +135,16 @@ public class client {
         frame.add(bottomPanel, BorderLayout.SOUTH);
 
         
-        return new ClientGUI(frame, chatArea, inputField, sendButton);
+        return new ClientChatGUI(frame, chatArea, inputField, sendButton);
     }
+    
+    
 
-    public static void startApplication(String hostname, int port, String username) {
+    
+
+    
+
+    public static void startCommunicationWithServer(String hostname, int port, String username) {
         try {
             Socket socket = connectToServer(hostname, port);
             
@@ -87,7 +159,7 @@ public class client {
             String clientIDString = in.readLine();
 
             // start interface 
-            ClientGUI clientInterface = createInterface(clientIDString);
+            ClientChatGUI clientInterface = createChatGUI(clientIDString);
 
             // Setup listeners 
             
