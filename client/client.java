@@ -10,7 +10,9 @@ import java.net.Socket;
 // Client Interface Libraries
 import javax.swing.*;
 import java.awt.BorderLayout;
-import java.awt.GridLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+
 
 
 
@@ -83,7 +85,6 @@ public class client {
 
     public static ClientStartGUI createStartGUI() {
         JFrame frame = new JFrame("Start chatting");
-        frame.setSize(400, 200);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLayout(new BorderLayout());
 
@@ -93,18 +94,36 @@ public class client {
         JTextField username = new JTextField("Username");
         JButton enterButton = new JButton("Enter");
 
-        // Panel for input fields
-        JPanel inputPanel = new JPanel(new GridLayout(3, 1, 5, 5));
-        inputPanel.add(hostname);
-        inputPanel.add(port);
-        inputPanel.add(username);
+        // Init box layout manager for main panel 
+        JPanel main = new JPanel();
+        main.setLayout(new BoxLayout(main, BoxLayout.Y_AXIS));
+        main.setBorder(BorderFactory.createEmptyBorder(20,20,20,20));
 
-        // Main panel
-        JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.add(inputPanel, BorderLayout.CENTER);
-        mainPanel.add(enterButton, BorderLayout.SOUTH);
+        // Set all components maximum size for stretching the GUI
+        Dimension fieldSize = new Dimension(250, 30);
+        hostname.setMaximumSize(fieldSize);
+        port.setMaximumSize(fieldSize);
+        username.setMaximumSize(fieldSize);
+        enterButton.setMaximumSize(new Dimension(150, 35));
 
-        frame.add(mainPanel, BorderLayout.CENTER);
+        // Set component alignment 
+        hostname.setAlignmentX(Component.CENTER_ALIGNMENT);
+        port.setAlignmentX(Component.CENTER_ALIGNMENT);
+        username.setAlignmentX(Component.CENTER_ALIGNMENT);
+        enterButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        main.add(hostname);
+        main.add(Box.createVerticalStrut(10));
+        main.add(port);
+        main.add(Box.createVerticalStrut(10));
+        main.add(username);
+        main.add(Box.createVerticalStrut(10));
+        main.add(enterButton);
+
+        frame.add(main, BorderLayout.CENTER);
+        frame.setMinimumSize(new Dimension(400, 450));
+        frame.pack();
+        frame.setLocationRelativeTo(null);
         frame.setVisible(true);
 
         return new ClientStartGUI(frame, hostname, port, enterButton, username);

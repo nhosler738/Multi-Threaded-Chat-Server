@@ -11,4 +11,6 @@ client_log/
 # OS files
 .DS_Store
 
+# gitignore file 
+.gitignore
 
