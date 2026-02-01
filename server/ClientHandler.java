@@ -69,6 +69,9 @@ public class ClientHandler implements Runnable {
 
             String line; 
             while ((line = in.readLine()) != null) {
+
+                line = line.trim();
+                
                 // check for command request
                 if(line.startsWith("/")) {
                     cmdHandler.handle(line);
