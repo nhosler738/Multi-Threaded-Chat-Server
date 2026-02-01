@@ -47,6 +47,8 @@ public class client {
 
                 // start client connection 
                 startCommunicationWithServer(hostname, Integer.parseInt(port), chatUsername);
+                // close the start window upon joining a server
+                this.frame.dispose();
             });
         }
     }
