@@ -20,6 +20,7 @@ public class ClientHandler implements Runnable {
         this.clientSocketIDString = "";
     }
 
+   
     public void setClientChatName(String username) {
         this.clientSocketIDString = username;
     }
@@ -48,7 +49,7 @@ public class ClientHandler implements Runnable {
 
             // add the clients output stream to the list of all client output streams
             server.getClientOutputsList().add(out);
-
+            
             String username = in.readLine();
             setClientChatName(username);
 
@@ -102,6 +103,7 @@ public class ClientHandler implements Runnable {
         // remove client output stream from clientOutputs list 
         finally {
             try {
+                server.removeClient(clientSocketIDString);
                 server.getClientOutputsList().remove(out);
                 String disconnectTimeStamp = java.time.LocalDateTime.now()
                 .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));

@@ -12,12 +12,15 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
 
 class server {
+    // list of all clientHandler objects on the server
+    private static final ConcurrentHashMap<String, ClientHandler> clients = new ConcurrentHashMap<>();
 
     // list of all client output streams (clients connected to the server)
     private static final List<PrintWriter> clientOutputs = new CopyOnWriteArrayList<>();
@@ -45,6 +48,13 @@ class server {
             
                 ClientHandler clientHandler = new ClientHandler(clientSocket);
 
+                if (!addClient(clientHandler)) {
+                    continue;
+                }
+
+                // add new client object
+                addClient(clientHandler);
+                
                 // Display that new client has connected to server with its ID number
                 System.out.println("New client connected: " + clientHandler.getClientIDString());
             
@@ -96,6 +106,21 @@ class server {
 
     }
 
+    public static boolean addClient(ClientHandler client) {
+        String key = client.getClientIDString();
+        if (clients.putIfAbsent(key, client) == null) {
+            return true;
+        }
+        return false;
+    }
+
+    public static void removeClient(String username) {
+        clients.remove(username);
+    }
+
+    public static ConcurrentHashMap<String, ClientHandler> getClients() {
+        return clients;
+    }
    
 
     // Broadcast message to all connected clients 
